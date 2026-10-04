@@ -1,1 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fabriqo - Studio & Custom Dress Visualizer</title>
+  <style>
+    :root {
+      --primary: #9333ea;
+      --primary-dark: #6b21a8;
+      --secondary: #f43f5e;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+    }
 
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 880px) {
+      .layout {
+        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column-reverse;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      color: var(--primary-dark);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 6px;
+      color: #334155;
+    }
+
+    select, input[type="text"], input[type="number"], input[type="file"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      background: #fafafa;
+      color: var(--text);
+    }
+
+    .pill-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .pill-selector input {
+      display: none;
+    }
+
+    .pill-selector label {
+      text-align: center;
+      padding: 10px 6px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0;
+      transition: all 0.2s;
+    }
+
+    .pill-selector input:checked + label {
+      border-color: var(--primary);
+      background: #f3e8ff;
+      color: var(--primary-dark);
+    }
+
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .color-swatch-box {
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      overflow: hidden;
+      cursor: pointer;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .color-swatch-box input[type="color"] {
+      width: 60px;
+      height: 60px;
+      margin-top: -8px;
+      margin-left: -8px;
+      cursor: pointer;
+      border: none;
+    }
+
+    .swatch-presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .swatch-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .preview-card {
+      position: sticky;
+      top: 16px;
+      text-align: center;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      max-width: 340px;
+      height: 440px;
+      margin: 0 auto 16px auto;
+      background: #fafafa;
+      border-radius: 14px;
+      border: 2px dashed #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    #dressSvg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));
+    }
+
+    .spec-summary {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: left;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .spec-summary table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .spec-summary td {
+      padding: 4px 0;
+    }
+
+    .spec-summary td:last-child {
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .btn-wa {
+      background-color: #25d366;
+      color: white;
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+
+    .btn-wa:hover {
+      background-color: #1eb755;
+    }
+
+    .btn-copy {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px;
+      width: 100%;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>✂️ Fabriqo Studio</h1>
+    <p>Visualize your custom fabric into Punjabi, Indo-Western, and Western designs</p>
+  </header>
+
+  <div class="layout">
+    <div class="controls-column">
+      
+      <div class="card">
+        <h2>1. Fabric & Texture</h2>
+        
+        <div class="form-group">
+          <label>Upload Fabric Photo (See it fill your dress)</label>
+          <input type="file" id="fabricFile" accept="image/*" />
+        </div>
+
+        <div class="form-group">
+          <label>Or Choose Solid Color & Material</label>
+          <div class="color-row">
+            <div class="color-swatch-box">
+              <input type="color" id="fabricColor" value="#b91c1c" />
+            </div>
+            <div class="swatch-presets">
+              <div class="swatch-btn" style="background:#b91c1c;" onclick="setColor('#b91c1c')"></div>
+              <div class="swatch-btn" style="background:#047857;" onclick="setColor('#047857')"></div>
+              <div class="swatch-btn" style="background:#1d4ed8;" onclick="setColor('#1d4ed8')"></div>
+              <div class="swatch-btn" style="background:#d97706;" onclick="setColor('#d97706')"></div>
+              <div class="swatch-btn" style="background:#4c1d95;" onclick="setColor('#4c1d95')"></div>
+              <div class="swatch-btn" style="background:#111827;" onclick="setColor('#111827')"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Fabric Type</label>
+            <select id="fabricMaterial">
+              <option value="Raw Mulberry Silk">Raw Mulberry Silk</option>
+              <option value="Pure Cotton / Khadi">Pure Cotton / Khadi</option>
+              <option value="Chanderi / Organza">Chanderi / Organza</option>
+              <option value="Flowy Georgette">Flowy Georgette</option>
+              <option value="Rich Velvet">Rich Velvet</option>
+              <option value="Linen Blend">Linen Blend</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Inner Lining</label>
+            <select id="liningSelect">
+              <option value="Butter Crepe (Soft)">Butter Crepe (Soft)</option>
+              <option value="Cotton Malmal">Cotton Malmal</option>
+              <option value="Satin Silk">Satin Silk</option>
+              <option value="No Lining Required">No Lining Required</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Category & Silhouette</h2>
+        
+        <div class="pill-selector">
+          <input type="radio" name="genre" id="punjabi" value="Punjabi / Traditional" checked>
+          <label for="punjabi">Punjabi</label>
+
+          <input type="radio" name="genre" id="indowestern" value="Indo-Western">
+          <label for="indowestern">Indo-Western</label>
+
+          <input type="radio" name="genre" id="western" value="Western">
+          <label for="western">Western</label>
+        </div>
+
+        <div class="form-group">
+          <label>Select Cut / Silhouette</label>
+          <select id="silhouetteSelect"></select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Neckline</label>
+            <select id="necklineSelect">
+              <option value="Angrakha / V-Neck">Angrakha / V-Neck</option>
+              <option value="Bandhgala / Mandarin Collar">Mandarin / Bandhgala</option>
+              <option value="Sweetheart Neck">Sweetheart Neck</option>
+              <option value="Boat Neck">Boat Neck</option>
+              <option value="Square Neck">Square Neck</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Sleeves</label>
+            <select id="sleevesSelect">
+              <option value="Sleeveless / Strappy">Sleeveless</option>
+              <option value="3/4th Bell Sleeves">3/4th Bell Sleeves</option>
+              <option value="Full Fitted Sleeves">Full Fitted Sleeves</option>
+              <option value="Cape Drape Sleeves">Cape Drape Sleeves</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Embroidery & Detailing</label>
+          <select id="embroiderySelect">
+            <option value="None / Plain Clean Cut">None / Plain Fabric Only</option>
+            <option value="Zari Border & Butis">Zari Border & Thread Butis</option>
+            <option value="Mirror & Gota Patti Work">Mirror & Gota Patti Borders</option>
+            <option value="Minimal Chikankari Threadwork">Minimal Chikankari Threadwork</option>
+            <option value="Sequin Accent Highlights">Sequin Accent Highlights</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Measurements & Tailoring Specs</h2>
+        <div class="form-group">
+          <label>Standard Size</label>
+          <select id="sizePreset">
+            <option value="Custom">Custom Measurements (fill below)</option>
+            <option value="XS (Bust 32 / Waist 26)">XS (Bust 32" / Waist 26")</option>
+            <option value="S (Bust 34 / Waist 28)">S (Bust 34" / Waist 28")</option>
+            <option value="M (Bust 36 / Waist 30)" selected>M (Bust 36" / Waist 30")</option>
+            <option value="L (Bust 38 / Waist 32)">L (Bust 38" / Waist 32")</option>
+            <option value="XL (Bust 40 / Waist 34)">XL (Bust 40" / Waist 34")</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Bust (inches)</label>
+            <input type="number" id="mBust" value="36" />
+          </div>
+          <div class="form-group">
+            <label>Waist (inches)</label>
+            <input type="number" id="mWaist" value="30" />
+          </div>
+          <div class="form-group">
+            <label>Hip (inches)</label>
+            <input type="number" id="mHip" value="39" />
+          </div>
+          <div class="form-group">
+            <label>Desired Length (inches)</label>
+            <input type="number" id="mLength" value="44" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Boutique / Tailor WhatsApp Number</label>
+          <input type="text" id="boutiquePhone" placeholder="e.g. 919876543210 (with country code)" />
+        </div>
+      </div>
+
+    </div>
+
+    <div class="preview-column">
+      <div class="card preview-card">
+        <h2>Live Visualizer</h2>
+        
+        <div class="canvas-container">
+          <svg id="dressSvg" viewBox="0 0 300 420" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="userFabricPattern" patternUnits="userSpaceOnUse" width="120" height="120">
+                <rect id="patternBaseColor" width="120" height="120" fill="#b91c1c" />
+                <image id="patternImage" href="" width="120" height="120" preserveAspectRatio="xMidYMid slice" />
+              </pattern>
+
+              <clipPath id="clipPunjabi">
+                <path d="M125 40 Q150 60 175 40 L195 70 L170 85 L165 145 Q195 210 230 360 L70 360 Q105 210 135 145 L130 85 L105 70 Z" />
+              </clipPath>
+
+              <clipPath id="clipIndoWestern">
+                <path d="M130 45 Q150 70 170 45 L200 65 L175 140 Q185 240 215 370 L135 370 Q145 280 120 180 Q85 280 65 370 L120 370 Z" />
+              </clipPath>
+
+              <clipPath id="clipWestern">
+                <path d="M120 45 L180 45 L175 130 Q160 170 185 220 L210 370 L90 370 L115 220 Q140 170 125 130 Z" />
+              </clipPath>
+            </defs>
+
+            <path d="M150 20 C143 20 138 27 138 35 C138 43 143 49 150 49 C157 49 162 43 162 35 C162 27 157 20 150 20 Z" fill="#e2e8f0" />
+            <path d="M138 42 L132 55 L168 55 L162 42 Z" fill="#cbd5e1" />
+
+            <g id="garmentGroup">
+              <rect x="0" y="0" width="300" height="420" fill="url(#userFabricPattern)" clip-path="url(#clipPunjabi)" id="garmentFill" />
+            </g>
+
+            <path id="garmentStroke" d="M125 40 Q150 60 175 40 L195 70 L170 85 L165 145 Q195 210 230 360 L70 360 Q105 210 135 145 L130 85 L105 70 Z" fill="none" stroke="#475569" stroke-width="2.5" stroke-linejoin="round" />
+            <path d="M135 145 Q150 150 165 145" fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="2 2" />
+          </svg>
+        </div>
+
+        <div class="spec-summary">
+          <table>
+            <tr><td>Category:</td><td id="sumCat">Punjabi</td></tr>
+            <tr><td>Silhouette:</td><td id="sumSilhouette">Anarkali Flare Suit</td></tr>
+            <tr><td>Fabric:</td><td id="sumFabric">Raw Silk</td></tr>
+            <tr><td>Embroidery:</td><td id="sumWork">Plain</td></tr>
+            <tr><td>Neck & Sleeves:</td><td id="sumNeckSleeve">V-Neck | Full</td></tr>
+            <tr><td>Measurements:</td><td id="sumSizes">B:36" W:30" H:39" L:44"</td></tr>
+          </table>
+        </div>
+
+        <a href="#" target="_blank" class="btn-wa" id="whatsappBtn">
+          💬 Send Design to Boutique (WhatsApp)
+        </a>
+        <button class="btn-copy" id="copyBtn">📋 Copy Full Specs to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const silhouettes = {
+      "Punjabi / Traditional": {
+        clip: "clipPunjabi",
+        stroke: "M125 40 Q150 60 175 40 L195 70 L170 85 L165 145 Q195 210 230 360 L70 360 Q105 210 135 145 L130 85 L105 70 Z",
+        options: [
+          "Anarkali Flare Gown with Churidar",
+          "Patiala Salwar with Kurti",
+          "Straight Kurta with Flared Sharara",
+          "Lehenga Choli with Dupatta"
+        ]
+      },
+      "Indo-Western": {
+        clip: "clipIndoWestern",
+        stroke: "M130 45 Q150 70 170 45 L200 65 L175 140 Q185 240 215 370 L135 370 Q145 280 120 180 Q85 280 65 370 L120 370 Z",
+        options: [
+          "Draped Pre-Pleated Saree Gown",
+          "Crop Top & Palazzo with Long Cape",
+          "Asymmetrical High-Low Kurta Set",
+          "Dhoti Pants with Angrakha Jacket"
+        ]
+      },
+      "Western": {
+        clip: "clipWestern",
+        stroke: "M120 45 L180 45 L175 130 Q160 170 185 220 L210 370 L90 370 L115 220 Q140 170 125 130 Z",
+        options: [
+          "A-Line Midi Cocktail Dress",
+          "Tailored High-Waist Pantsuit / Blazer",
+          "Evening Slit Maxi Slip Dress",
+          "Tie-Belted Wrap Dress"
+        ]
+      }
+    };
+
+    const genreRadios = document.querySelectorAll('input[name="genre"]');
+    const silhouetteSelect = document.getElementById('silhouetteSelect');
+    const fabricFile = document.getElementById('fabricFile');
+    const fabricColor = document.getElementById('fabricColor');
+    const fabricMaterial = document.getElementById('fabricMaterial');
+    const liningSelect = document.getElementById('liningSelect');
+    const necklineSelect = document.getElementById('necklineSelect');
+    const sleevesSelect = document.getElementById('sleevesSelect');
+    const embroiderySelect = document.getElementById('embroiderySelect');
+    const sizePreset = document.getElementById('sizePreset');
+    const mBust = document.getElementById('mBust');
+    const mWaist = document.getElementById('mWaist');
+    const mHip = document.getElementById('mHip');
+    const mLength = document.getElementById('mLength');
+    const boutiquePhone = document.getElementById('boutiquePhone');
+    const whatsappBtn = document.getElementById('whatsappBtn');
+    const copyBtn = document.getElementById('copyBtn');
+
+    const patternBaseColor = document.getElementById('patternBaseColor');
+    const patternImage = document.getElementById('patternImage');
+    const garmentFill = document.getElementById('garmentFill');
+    const garmentStroke = document.getElementById('garmentStroke');
+
+    const sumCat = document.getElementById('sumCat');
+    const sumSilhouette = document.getElementById('sumSilhouette');
+    const sumFabric = document.getElementById('sumFabric');
+    const sumWork = document.getElementById('sumWork');
+    const sumNeckSleeve = document.getElementById('sumNeckSleeve');
+    const sumSizes = document.getElementById('sumSizes');
+
+    function setColor(color) {
+      fabricColor.value = color;
+      updateVisuals();
+    }
+
+    function populateSilhouettes(genre) {
+      silhouetteSelect.innerHTML = '';
+      silhouettes[genre].options.forEach(opt => {
+        const el = document.createElement('option');
+        el.value = opt;
+        el.textContent = opt;
+        silhouetteSelect.appendChild(el);
+      });
+    }
+
+    function updateVisuals() {
+      const selectedGenre = document.querySelector('input[name="genre"]:checked').value;
+      const config = silhouettes[selectedGenre];
+
+      garmentFill.setAttribute('clip-path', `url(#${config.clip})`);
+      garmentStroke.setAttribute('d', config.stroke);
+
+      patternBaseColor.setAttribute('fill', fabricColor.value);
+
+      sumCat.textContent = selectedGenre;
+      sumSilhouette.textContent = silhouetteSelect.value;
+      sumFabric.textContent = `${fabricMaterial.value} (${liningSelect.value})`;
+      sumWork.textContent = embroiderySelect.value;
+      sumNeckSleeve.textContent = `${necklineSelect.value} | ${sleevesSelect.value}`;
+      sumSizes.textContent = `B:${mBust.value}" W:${mWaist.value}" H:${mHip.value}" L:${mLength.value}"`;
+
+      const phone = boutiquePhone.value.replace(/[^0-9]/g, '') || "";
+      const text = encodeURIComponent(
+        `*FABRIQO CUSTOM DESIGN ORDER*\n\n` +
+        `• Category: ${selectedGenre}\n` +
+        `• Silhouette: ${silhouetteSelect.value}\n` +
+        `• Fabric: ${fabricMaterial.value}\n` +
+        `• Lining: ${liningSelect.value}\n` +
+        `• Neckline: ${necklineSelect.value}\n` +
+        `• Sleeves: ${sleevesSelect.value}\n` +
+        `• Embroidery / Work: ${embroiderySelect.value}\n` +
+        `• Measurements: Bust ${mBust.value}", Waist ${mWaist.value}", Hip ${mHip.value}", Length ${mLength.value}"\n\n` +
+        `*(Created using Fabriqo Studio)*`
+      );
+      whatsappBtn.href = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
+    }
+
+    fabricFile.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          patternImage.setAttribute('href', event.target.r
